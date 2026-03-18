@@ -6,57 +6,59 @@ import styles from './styles.module.css';
 import InstagramIcon from '../../assets/instagram.svg';
 import BehanceLogo from '../../assets/behance-logo.svg';
 
-import { fetchGoogleDriveData } from '@/utils/googleDriveApi';
+import { getDuendeData } from '@/server/data/duende';
 
 export const metadata: Metadata = {
   title: 'Contact | Duende',
 };
 
-type DataProps = {
-  email: string;
-  instagram: string;
-  behance: string;
-};
+export const dynamic = 'force-dynamic';
 
 export default async function Contact() {
-  let data: DataProps | null = null;
-
-  try {
-    data = await fetchGoogleDriveData();
-  } catch (error) {
-    console.error('Ошибка при получении данных:', error);
-  }
+  const { data } = await getDuendeData();
+  const email = data.contact.email;
+  const instagramUrl = data.contact.instagram;
+  const behanceUrl = data.contact.behance;
+  const hasEmail = Boolean(email);
+  const hasInstagram = Boolean(instagramUrl);
+  const hasBehance = Boolean(behanceUrl);
 
   return (
     <div className={styles.container}>
-      {data ? (
+      {hasEmail || hasInstagram || hasBehance ? (
         <>
-          <Link href={`mailto:${data.email}`}>
-            <p className={styles.text}>{data.email}</p>
-          </Link>
+          {hasEmail && (
+            <Link href={`mailto:${email}`}>
+              <p className={styles.text}>{email}</p>
+            </Link>
+          )}
 
           <div className={styles.socialWrapper}>
-            <Link href={data.instagram} target="_blank">
-              <Image
-                src={InstagramIcon}
-                alt="instagram"
-                className={styles.socialLink}
-                width={50}
-                height={50}
-                priority
-              />
-            </Link>
+            {instagramUrl && (
+              <Link href={instagramUrl} target="_blank">
+                <Image
+                  src={InstagramIcon}
+                  alt="instagram"
+                  className={styles.socialLink}
+                  width={50}
+                  height={50}
+                  priority
+                />
+              </Link>
+            )}
 
-            <Link href={data.behance} target="_blank">
-              <Image
-                src={BehanceLogo}
-                alt="behance"
-                className={styles.socialLink}
-                width={50}
-                height={50}
-                priority
-              />
-            </Link>
+            {behanceUrl && (
+              <Link href={behanceUrl} target="_blank">
+                <Image
+                  src={BehanceLogo}
+                  alt="behance"
+                  className={styles.socialLink}
+                  width={50}
+                  height={50}
+                  priority
+                />
+              </Link>
+            )}
           </div>
         </>
       ) : (
@@ -65,5 +67,3 @@ export default async function Contact() {
     </div>
   );
 }
-
-export const dynamic = 'force-dynamic';

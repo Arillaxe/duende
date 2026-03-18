@@ -5,22 +5,14 @@ import styles from './styles.module.css';
 import InstagramIcon from '../../assets/instagram.svg';
 import BehanceLogo from '../../assets/behance-logo.svg';
 
-import { fetchGoogleDriveData } from '@/utils/googleDriveApi';
-
-type FooterDataProps = {
-  instagram: string;
-  behance: string;
-  since: string;
-};
+import { getDuendeData } from '@/server/data/duende';
 
 export default async function Footer() {
-  let data: FooterDataProps | null = null;
-
-  try {
-    data = await fetchGoogleDriveData();
-  } catch (error) {
-    console.error('Ошибка при получении данных:', error);
-  }
+  const { data } = await getDuendeData();
+  const instagramUrl = data.contact.instagram;
+  const behanceUrl = data.contact.behance;
+  const hasInstagram = Boolean(instagramUrl);
+  const hasBehance = Boolean(behanceUrl);
 
   return (
     <footer className={styles.footer}>
@@ -38,33 +30,37 @@ export default async function Footer() {
             />
           </Link>
           <p className={styles.right}>
-            ALL&nbsp;RIGHTS RESERVED&nbsp;/ DUENDE / {data?.since || '2024'}
+            ALL&nbsp;RIGHTS RESERVED&nbsp;/ DUENDE / {data.footer.since}
             &nbsp;&copy;
           </p>
         </div>
         <div className={styles.socialWrapper}>
-          {data && (
+          {(hasInstagram || hasBehance) && (
             <>
-              <Link href={data.instagram} target="_blank">
-                <Image
-                  src={InstagramIcon}
-                  alt="instagram-logo"
-                  className={styles.socialLink}
-                  width={50}
-                  height={50}
-                  priority
-                />
-              </Link>
-              <Link href={data.behance} target="_blank">
-                <Image
-                  src={BehanceLogo}
-                  alt="behance-logo"
-                  className={styles.socialLink}
-                  width={50}
-                  height={50}
-                  priority
-                />
-              </Link>
+              {instagramUrl && (
+                <Link href={instagramUrl} target="_blank">
+                  <Image
+                    src={InstagramIcon}
+                    alt="instagram-logo"
+                    className={styles.socialLink}
+                    width={50}
+                    height={50}
+                    priority
+                  />
+                </Link>
+              )}
+              {behanceUrl && (
+                <Link href={behanceUrl} target="_blank">
+                  <Image
+                    src={BehanceLogo}
+                    alt="behance-logo"
+                    className={styles.socialLink}
+                    width={50}
+                    height={50}
+                    priority
+                  />
+                </Link>
+              )}
             </>
           )}
         </div>
@@ -72,5 +68,3 @@ export default async function Footer() {
     </footer>
   );
 }
-
-export const dynamic = 'force-dynamic';

@@ -1,66 +1,57 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 import styles from './styles.module.css';
-import { fetchGoogleDriveData } from '@/utils/googleDriveApi';
+import { getDuendeData } from '@/server/data/duende';
 
 export const metadata: Metadata = {
   title: 'About | Duende',
 };
 
-type DataProps = {
-  about_text: {
-    title: string;
-    description: string[];
-  };
-  about_images: {
-    id: string;
-    alt: string;
-    src: string;
-  }[];
-};
+export const dynamic = 'force-dynamic';
 
 export default async function About() {
-  let data: DataProps | null = null;
+  const result = await getDuendeData();
+  const { data } = result;
+  const firstImage = data.about.images[0];
+  const secondImage = data.about.images[1];
 
-  try {
-    data = await fetchGoogleDriveData();
-  } catch (error) {
-    console.error('Ошибка при получении данных:', error);
+  if (!result.ok && !data.about.title && data.about.description.length === 0) {
+    return <div className={styles.container}>нет данных</div>;
   }
 
   return (
     <div className={styles.container}>
       <div className={styles.headingWrapper}>
-        <h2 className={styles.heading}>{data?.about_text.title}</h2>
+        <h2 className={styles.heading}>{data.about.title}</h2>
       </div>
       <div className={styles.photoWrapper1}>
-        {data?.about_images && data.about_images.length > 0 && (
+        {firstImage && (
           <Image
-            src={data.about_images[0].src}
+            src={firstImage.src}
             width={300}
             height={300}
             quality={100}
-            alt={data.about_images[0].alt}
+            alt={firstImage.alt}
             className={styles.photo}
             priority
           />
         )}
       </div>
       <div className={styles.aboutWrapper}>
-        {data?.about_text.description.map((text, index) => (
+        {data.about.description.map((text, index) => (
           <p key={index} className={styles.text}>
             {text}
           </p>
         ))}
       </div>
       <div className={styles.photoWrapper2}>
-        {data?.about_images && data.about_images.length > 1 && (
+        {secondImage && (
           <Image
-            src={data.about_images[1].src}
+            src={secondImage.src}
             width={300}
             height={300}
             quality={100}
-            alt={data.about_images[1].alt}
+            alt={secondImage.alt}
             className={styles.photo}
             priority
           />
@@ -69,5 +60,3 @@ export default async function About() {
     </div>
   );
 }
-
-export const dynamic = 'force-dynamic';

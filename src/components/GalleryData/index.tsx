@@ -1,17 +1,7 @@
-import { fetchGoogleDriveData } from '@/utils/googleDriveApi';
 import Gallery from '@/components/Gallery';
+import { getDuendeData } from '@/server/data/duende';
 
 export default async function GalleryData() {
-  let photos = [];
-
-  try {
-    const fetchedData = await fetchGoogleDriveData();
-    photos = fetchedData.slides || [];
-  } catch (error) {
-    console.error('Ошибка при получении данных:', error);
-  }
-
-  return <Gallery photos={photos} />;
+  const { data } = await getDuendeData();
+  return <Gallery photos={data.slides} />;
 }
-
-export const dynamic = 'force-dynamic';

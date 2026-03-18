@@ -1,17 +1,31 @@
-const fileId = process.env.NEXT_PUBLIC_FILE_ID;
-const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`;
+import 'server-only';
+
+const GOOGLE_DRIVE_REVALIDATE_SECONDS = 300;
+
+const getGoogleDriveUrl = () => {
+  const fileId = process.env.GOOGLE_DRIVE_FILE_ID;
+  const apiKey = process.env.GOOGLE_DRIVE_API_KEY;
+
+  if (!fileId || !apiKey) {
+    throw new Error(
+      'Missing required env vars: GOOGLE_DRIVE_FILE_ID and GOOGLE_DRIVE_API_KEY',
+    );
+  }
+
+  const url = new URL(`https://www.googleapis.com/drive/v3/files/${fileId}`);
+  url.searchParams.set('alt', 'media');
+  url.searchParams.set('key', apiKey);
+  return url.toString();
+};
 
 export const fetchGoogleDriveData = async () => {
-  try {
-    const response = await fetch(url, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`Ошибка HTTP! статус: ${response.status}`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Ошибка при получении файла:', error);
-    throw error;
+  const response = await fetch(getGoogleDriveUrl(), {
+    next: { revalidate: GOOGLE_DRIVE_REVALIDATE_SECONDS },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Google Drive API error: ${response.status}`);
   }
+
+  return response.json();
 };
